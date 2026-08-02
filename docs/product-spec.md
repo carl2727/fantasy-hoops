@@ -51,12 +51,15 @@ Ein Spieler, der wegen Verletzung viele Teamspiele verpasst hat, bekommt dadurch
 - `Total_Available_Rating` = `Total_Rating × availability_score`, neu normiert = **"Performance Rating"**
 - `Combined_Rating` = Mittelwert aus beiden, neu normiert = **"Combined Rating"**
 
-### 2.4 Punt-Varianten
-Für jede 1er- und 2er-Kombination der 9 Kategorien (45 Kombinationen) werden alle drei Rating-Varianten
-(Overall/Performance/Combined) **vorab ohne diese Kategorie(n)** berechnet. Damit kann ein Nutzer im Frontend
-sofort zwischen "ich puntte Assists" o. ä. umschalten, ohne dass neu gerechnet werden muss.
+### 2.4 Punt-Varianten **[v2: ADR 0002]**
+Die Pipeline speichert nur die 9 rohen Kategorie-Ratings + `availability_score` pro Spieler — **keine**
+vorberechneten Punt-Kombinationen mehr (v1 berechnete alle 45 1er/2er-Kombinationen × 3 Rating-Typen vorab als
+135 Spalten). Punt-adjustierte Overall-/Performance-/Combined-Ratings werden stattdessen zur Laufzeit im Frontend
+berechnet (verbleibende Kategorien summieren → gegen Max der angezeigten Spieler neu skalieren →
+`availability_score` einrechnen). Dadurch sind bis zu **4** gleichzeitig geputtete Kategorien möglich (v1: 2),
+ohne Pipeline- oder Schema-Änderung. Details/Begründung: `docs/decisions/0002-punt-ratings-on-demand.md`.
 
-### 2.5 Wochen-Ratings
+### 2.5 Wochen-Ratings **[Zurückgestellt, ADR 0003 — nicht Teil des v2-Erstrelease]**
 Pro ISO-Kalenderwoche: `week_rating = Total_Rating × (Spiele_des_Teams_diese_Woche / Max_Spiele_eines_Teams_diese_Woche)`.
 Zeigt, welche Spieler in einer bestimmten Woche wegen eines vollen Spielplans ihres Teams besonders wertvoll sind
 (z. B. für Streaming/Waiver-Entscheidungen).
@@ -105,9 +108,10 @@ lohnt — niedrige Priorität, kein Blocker.
 - `Draft_Pos`-Spalte in der Ratings-Tabelle sortierbar, sobald ein Team aktiv ist.
 
 ### 3.5 Punt-Tool (`/punt`)
-- 1–2 Kategorien als "geputtet" markieren (bewusst ignoriert für die Team-Strategie, gängiges 9-Cat-Konzept).
+- Bis zu 4 Kategorien als "geputtet" markieren (bewusst ignoriert für die Team-Strategie, gängiges 9-Cat-Konzept;
+  v1 erlaubte nur 2 — siehe ADR 0002).
 - Ratings-Tabelle zeigt danach automatisch die entsprechende Punt-Rating-Variante (Overall/Performance/Combined
-  ohne die geputteten Kategorien).
+  ohne die geputteten Kategorien), berechnet on-demand im Frontend statt vorab in der Pipeline.
 
 ### 3.6 Anzeige-Einstellungen (`/punt`, "Settings"-Bereich)
 - Heatmap-Färbung an/aus, Tier-Färbung an/aus.
@@ -128,9 +132,16 @@ lohnt — niedrige Priorität, kein Blocker.
 
 ---
 
-## 4. Offene Fragen für die Umsetzung
+## 4. Entschieden (vormals "Offene Fragen")
 
-- Genaues Supabase-Tabellenschema (Players/Ratings vs. Punt-Varianten: 45 Kombinationen × 3 Rating-Typen als
-  eigene Spalten wie in v1, oder normalisiert/on-demand berechnet im Frontend?).
-- Wie viele Punt-Kategorien wirklich unterstützt werden sollen (v1: max. 2 — beibehalten oder erweitern?).
-- Ob Wochen-Ratings (Abschnitt 2.5) im v2-Scope bleiben oder als "später"-Feature zurückgestellt werden.
+- **Punt-Varianten-Speicherung:** on-demand im Frontend berechnet, nicht vorberechnet in Supabase.
+  → `docs/decisions/0002-punt-ratings-on-demand.md`
+- **Anzahl puntbarer Kategorien:** bis zu 4 (v1: 2), rein UI-seitig konfigurierbar dank on-demand-Berechnung.
+  → `docs/decisions/0002-punt-ratings-on-demand.md`
+- **Wochen-Ratings:** zurückgestellt, nicht Teil des v2-Erstrelease (in v1 ohnehin nirgends in der UI verwendet).
+  → `docs/decisions/0003-weekly-ratings-deferred.md`
+
+## 5. Backlog (bewusst nicht im Erstrelease)
+
+- Wochen-Ratings als sichtbares "Streaming/Waiver-Helfer"-Feature (siehe ADR 0003).
+- Team-Positions-Coverage über einen echten Zuordnungs-Algorithmus (z. B. bipartites Matching) statt Greedy-Heuristik.

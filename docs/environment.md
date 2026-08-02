@@ -3,11 +3,22 @@
 Übersicht, welche Zugangsdaten wo herkommen, wo sie gebraucht werden und wo sie gespeichert werden — damit das
 nicht bei jeder Session neu zusammengesucht werden muss.
 
-| Variable | Herkunft (Supabase Dashboard) | Gebraucht in | Sichtbarkeit |
+### Für `app/` (Next.js) — lokal `.env.local`, produktiv Vercel Env Vars
+
+| Variable | Herkunft (Supabase Dashboard) | Sichtbarkeit |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL | öffentlich unbedenklich |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` (aka "publishable key") | Project Settings → API Keys → "anon public" / "publishable" | öffentlich unbedenklich — durch RLS abgesichert (siehe `docs/schema.md`) |
+
+Das `NEXT_PUBLIC_`-Präfix ist Next.js-Konvention (macht die Variable im Browser verfügbar) — hat nichts mit
+Supabase selbst zu tun.
+
+### Für `pipeline/` (GitHub Action) — GitHub Repo → Settings → Secrets and variables → Actions
+
+| Name | Typ | Herkunft (Supabase Dashboard) | Sichtbarkeit |
 |---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL | `app/` (Next.js), `pipeline/` | öffentlich unbedenklich |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` (aka "publishable key") | Project Settings → API Keys → "anon public" / "publishable" | `app/` (Next.js Frontend) | öffentlich unbedenklich — durch RLS abgesichert (siehe `docs/schema.md`) |
-| `SUPABASE_SERVICE_ROLE_KEY` (aka "secret key") | Project Settings → API Keys → "service_role" / "secret" — **eigener Eintrag, nicht die publishable key von oben** | `pipeline/` (GitHub Action) | **GEHEIM** — niemals committen, nur als GitHub Actions Secret hinterlegen |
+| `SUPABASE_URL` | Variable (nicht geheim) | Project Settings → API → Project URL | öffentlich unbedenklich |
+| `SUPABASE_SERVICE_ROLE_KEY` (aka "secret key") | **Secret** | Project Settings → API Keys → "service_role" / "secret" — **eigener Eintrag, nicht die publishable key von oben** | **GEHEIM** — niemals committen, nur als GitHub Actions Secret hinterlegen |
 
 ## Wo speichern
 

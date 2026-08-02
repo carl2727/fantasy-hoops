@@ -7,6 +7,7 @@ Ziel: kostenlos/günstig hostbar, tägliche NBA-API-Daten, modernes UI.
 
 - `docs/decisions/` – ADRs (Architektur-Entscheidungen, Kontext, verworfene Alternativen)
 - `docs/product-spec.md` – Datenquellen, Rating-Berechnung und Feature-Liste der Website im Detail
+- `docs/schema.md` – Supabase-Tabellenschema mit Begründung; ausführbares DDL in `supabase/schema.sql`
 
 ## Architektur (siehe docs/decisions/0001-serverless-architecture.md)
 
@@ -39,7 +40,8 @@ Frontend wird dadurch rein lesend/serverless und kann auf Vercel/Supabase Free l
 
 ## Offene Punkte
 
-- [ ] Supabase-Schema final definieren
+- [x] Supabase-Schema final definieren (`docs/schema.md`, `supabase/schema.sql`)
+- [ ] Supabase-Projekt anlegen und `supabase/schema.sql` ausführen
 - [ ] Rating-Engine aus altem `fantasy_nba`-Projekt nach `pipeline/` migrieren
 - [ ] GitHub Action für täglichen Datenpull aufsetzen
 - [ ] Next.js Grundgerüst mit Ratings-Tabelle (Read-only, Feature-Parität zu v1)

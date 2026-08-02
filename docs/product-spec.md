@@ -14,7 +14,7 @@ stats.nba.com-Endpunkte) und laufen ausschließlich in `pipeline/` (siehe ADR 00
 | Quelle | Endpoint/Methode | Frequenz | Zweck |
 |---|---|---|---|
 | Spieler-Stammdaten | `CommonAllPlayers` (aktuelle Saison) | 1×/Saison bzw. bei Roster-Änderungen | `PERSON_ID`, `DISPLAY_FIRST_LAST`, `TEAM_ID`, `TEAM_NAME` — Basis-Spielerliste |
-| Game Logs pro Spieler | `LeagueGameLog` (player-level, ganze Liga auf einmal, nicht pro Spieler einzeln — v1 nutzte anfangs `PlayerGameLog` pro Spieler, was sehr langsam/rate-limit-anfällig war) | **täglich** (inkrementell, nur neue Spiele seit letztem Lauf) | Rohdaten für alle Ratings: `SEASON_ID, Player_ID, Game_ID, GAME_DATE, MATCHUP, WL, MIN, FGM, FGA, FG3M, FG3A, FTM, FTA, OREB, DREB, REB, AST, STL, BLK, TOV, PF, PTS, PLUS_MINUS` |
+| Game Logs pro Spieler | `LeagueGameLog` (player-level, ganze Liga auf einmal, nicht pro Spieler einzeln — v1 nutzte anfangs `PlayerGameLog` pro Spieler, was sehr langsam/rate-limit-anfällig war) | **täglich, kompletter Saison-Neuaufbau** (nicht inkrementell — siehe ADR 0004) | Rohdaten für alle Ratings: `SEASON_ID, Player_ID, Game_ID, GAME_DATE, MATCHUP, WL, MIN, FGM, FGA, FG3M, FG3A, FTM, FTA, OREB, DREB, REB, AST, STL, BLK, TOV, PF, PTS, PLUS_MINUS` |
 | Spielplan (Schedule) | Saison-Spielplan (Visitor/Home/Datum je Team) | 1×/Saison, ggf. bei Terminverschiebungen aktualisieren | Grundlage für "Spiele pro Woche je Team" → Wochen-Ratings |
 | Spielerpositionen (NBA) | `CommonPlayerInfo` pro Spieler | selten (ändert sich kaum während der Saison) | Rohposition (Guard/Forward/Center/Kombinationen) |
 | **[NEU/v2]** Fantasy-Positionen | abgeleitet aus NBA-Position (siehe Verarbeitung unten) | bei jedem Positions-Update | Standard-Fantasy-Slots: PG, SG, SF, PF, C (Mehrfach-Eligibility möglich, z. B. Guard → PG+SG) |
@@ -82,7 +82,11 @@ lohnt — niedrige Priorität, kein Blocker.
 ## 3. Features der Website
 
 ### 3.1 Ratings-Tabelle (Kernfeature, Startseite)
-- Top ~200 Spieler nach `Total_Rating`, alle Kategorie-Ratings + Overall/Performance/Combined Rating, Fantasy-Position(en).
+- Alle Spieler mit mindestens einem Spiel in der laufenden Saison, alle Kategorie-Ratings + Overall/Performance/
+  Combined Rating, Fantasy-Position(en). **Korrektur ggü. erster Fassung dieser Spec:** v1 berechnet zwar einen
+  "Top 200"-Cap (`player_selection` in `ratings.py`), wendet ihn aber nie tatsächlich auf die gespeicherten/
+  angezeigten Daten an — totes Code. v2 übernimmt bewusst "alle Spieler", keine künstliche Begrenzung
+  (siehe ADR 0004).
 - Sortierbar durch Klick auf Spaltenkopf (auf-/absteigend), Statusfilter (Alle / Im Team / Verfügbar / Nicht verfügbar / Verletzt / Gesund).
 - Heatmap-Färbung (rot→grün je Kategorie-Wert) und Tier-Färbung (grau→lila je Rating-Höhe), beide optional zuschaltbar.
 - Team-Durchschnittszeile oben angeheftet, wenn ein aktives Team mit Spielern existiert.

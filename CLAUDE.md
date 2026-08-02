@@ -9,6 +9,7 @@ Ziel: kostenlos/günstig hostbar, tägliche NBA-API-Daten, modernes UI.
 - `docs/product-spec.md` – Datenquellen, Rating-Berechnung und Feature-Liste der Website im Detail
 - `docs/schema.md` – Supabase-Tabellenschema mit Begründung; ausführbares DDL in `supabase/schema.sql`
 - `docs/environment.md` – welche Env-Variablen/Secrets woher kommen und wo sie hingehören
+- `pipeline/README.md` – wie die Rating-Pipeline lokal ausgeführt wird, Modulübersicht
 
 ## Architektur (siehe docs/decisions/0001-serverless-architecture.md)
 
@@ -45,7 +46,9 @@ Frontend wird dadurch rein lesend/serverless und kann auf Vercel/Supabase Free l
       gesperrt — VS Code schließen, dann Ordner umbenennen und in VS Code neu öffnen)
 - [x] Supabase-Schema final definieren (`docs/schema.md`, `supabase/schema.sql`)
 - [x] Supabase-Projekt angelegt, `supabase/schema.sql` ausgeführt
-- [ ] Service-Role-Key aus Supabase besorgen (siehe `docs/environment.md`)
-- [ ] Rating-Engine aus altem `fantasy_nba`-Projekt nach `pipeline/` migrieren
-- [ ] GitHub Action für täglichen Datenpull aufsetzen
+- [x] GitHub-Repo angelegt (`github.com/carl2727/fantasy-hoops`, public), Secrets/Variables gesetzt
+- [x] Rating-Engine nach `pipeline/` migriert (siehe `pipeline/README.md`), inkl. ADR 0004
+      (voller Neuaufbau statt inkrementell) — **noch NICHT gegen echtes Supabase/nba_api getestet**,
+      da diese Session keinen Internetzugriff hat. Erster Testlauf nötig: lokal `python -m pipeline.main`
+      oder `workflow_dispatch` in GitHub Actions, Logs prüfen.
 - [ ] Next.js Grundgerüst mit Ratings-Tabelle (Read-only, Feature-Parität zu v1)

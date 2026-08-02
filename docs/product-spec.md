@@ -118,7 +118,8 @@ lohnt — niedrige Priorität, kein Blocker.
 
 ### 3.7 Auth
 - Registrierung/Login/Logout.
-- **[NEU/v2]** Supabase Auth statt Django-Sessions (siehe ADR 0001).
+- **[NEU/v2]** Supabase Auth statt Django-Sessions (siehe ADR 0001), Methode: **E-Mail + Passwort** (Parität zu v1,
+  keine zusätzliche E-Mail-Zustell-Konfiguration nötig).
 
 ### 3.8 "Breakdown"-Seite
 - In v1 aktuell nur ein Platzhalter-Template ohne Inhalt. **[NEU/v2]** Sinnvoll ausbauen: kurze Erklärung der

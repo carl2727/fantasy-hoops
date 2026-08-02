@@ -1,4 +1,4 @@
-# Fantasy NBA v2
+# Fantasy Hoops
 
 Neuaufbau des bestehenden `fantasy_nba`-Projekts (9-Kategorien Fantasy-Basketball-Ratings & Team-/Draft-Tool).
 Ziel: kostenlos/günstig hostbar, tägliche NBA-API-Daten, modernes UI.
@@ -40,6 +40,8 @@ Frontend wird dadurch rein lesend/serverless und kann auf Vercel/Supabase Free l
 
 ## Offene Punkte
 
+- [ ] Projektordner von `fantasy-nba-v2` auf `fantasy-hoops` umbenennen (aktuell durch offenes VS-Code-Fenster
+      gesperrt — VS Code schließen, dann Ordner umbenennen und in VS Code neu öffnen)
 - [x] Supabase-Schema final definieren (`docs/schema.md`, `supabase/schema.sql`)
 - [ ] Supabase-Projekt anlegen und `supabase/schema.sql` ausführen
 - [ ] Rating-Engine aus altem `fantasy_nba`-Projekt nach `pipeline/` migrieren

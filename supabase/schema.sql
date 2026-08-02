@@ -1,4 +1,4 @@
--- Fantasy NBA v2 — Supabase schema (v1)
+-- Fantasy Hoops — Supabase schema (v1)
 -- Siehe docs/schema.md für die Begründung einzelner Entscheidungen.
 -- Ausführen im Supabase SQL Editor (oder via `supabase db push`, sobald die Supabase CLI genutzt wird).
 

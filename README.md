@@ -1,4 +1,4 @@
-# Fantasy NBA v2
+# Fantasy Hoops
 
 Neuaufbau des Fantasy-Basketball-Rating- und Team-Tools. Siehe [CLAUDE.md](CLAUDE.md) für den aktuellen
 Architektur-Stand und [docs/decisions/](docs/decisions/) für die Begründung einzelner Entscheidungen.

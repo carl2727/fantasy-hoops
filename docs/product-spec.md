@@ -1,4 +1,4 @@
-# Fantasy NBA v2 – Produkt-Spezifikation
+# Fantasy Hoops – Produkt-Spezifikation
 
 Dieses Dokument beschreibt präzise, welche Daten gezogen und verarbeitet werden und welche Features die Website
 haben soll. Basis ist Feature-Parität mit `fantasy_nba` v1 plus den in `docs/decisions/0001-serverless-architecture.md`

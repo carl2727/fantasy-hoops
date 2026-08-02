@@ -3,11 +3,12 @@ Einstiegspunkt der taeglichen Pipeline. Laeuft als GitHub Action (.github/workfl
 kann aber genauso lokal ausgefuehrt werden: `python -m pipeline.main` (mit gesetzten Env-Vars,
 siehe docs/environment.md und pipeline/.env.example).
 
-Ablauf: Spielerliste holen -> neue Spieler-Positionen nachladen -> Saison-Game-Logs holen ->
-Ratings berechnen -> alles nach Supabase schreiben -> Pipeline-Lauf protokollieren.
+Ablauf: Saison-Game-Logs holen -> Spielerliste + neue Positionen nachladen (Fallback auf Supabase,
+falls das fehlschlaegt) -> Ratings berechnen -> alles nach Supabase schreiben -> Lauf protokollieren.
 """
 import sys
 
+import pandas as pd
 from dotenv import load_dotenv
 
 from . import config, nba_data, positions, ratings_engine, supabase_io
@@ -42,19 +43,23 @@ def _build_player_records(all_players_df, existing_positions: dict[int, list[str
     return records
 
 
+def _load_fallback_players_from_supabase(client) -> pd.DataFrame:
+    """Wird genutzt, wenn CommonAllPlayers fehlschlaegt: nutzt die zuletzt erfolgreich
+    gespeicherte Spielerliste aus Supabase, damit die Rating-Berechnung (die nur
+    PERSON_ID/TEAM_ID fuer die Verfuegbarkeits-Gewichtung braucht) trotzdem weiterlaufen kann."""
+    rows = client.table("players").select("player_id, team_id").execute().data or []
+    if not rows:
+        return pd.DataFrame(columns=["PERSON_ID", "TEAM_ID"])
+    return pd.DataFrame(rows).rename(columns={"player_id": "PERSON_ID", "team_id": "TEAM_ID"})
+
+
 def run() -> None:
     client = supabase_io.get_client()
 
-    print("Lade Spielerliste...")
-    all_players_df = nba_data.fetch_all_players()
-
-    existing_rows = client.table("players").select("player_id, fantasy_positions").execute().data or []
-    existing_positions = {row["player_id"]: row["fantasy_positions"] for row in existing_rows}
-
-    player_records = _build_player_records(all_players_df, existing_positions)
-    supabase_io.upsert_players(client, player_records)
-    print(f"{len(player_records)} Spieler in Supabase aktualisiert.")
-
+    # Game-Logs zuerst: das ist der Teil, der in v1s produktivem taeglichen GitHub-Action-Lauf
+    # (update_nba_game_logs.py) bereits nachweislich funktioniert hat. CommonAllPlayers (unten)
+    # ist ein anderer nba_api-Endpunkt mit unklarer Zuverlaessigkeit von GitHub-Actions-Runnern aus --
+    # falls nur dieser fehlschlaegt, soll das die wichtigeren Ratings nicht mit zu Fall bringen.
     print("Lade Saison-Game-Logs...")
     game_logs = nba_data.fetch_season_game_logs()
     if game_logs.empty:
@@ -71,7 +76,27 @@ def run() -> None:
     games_ingested = int(game_logs["Game_ID"].nunique())
     print(f"{games_ingested} Spiele geladen, {len(game_logs)} Spieler-Spiel-Zeilen.")
 
-    ratings_df = ratings_engine.compute_ratings(game_logs, all_players_df)
+    print("Lade Spielerliste...")
+    try:
+        all_players_df = nba_data.fetch_all_players()
+    except Exception as exc:  # noqa: BLE001 - Spielerliste ist "nice to have", darf Ratings nicht blockieren
+        print(f"Warnung: Spielerliste (CommonAllPlayers) konnte nicht geladen werden ({exc}). "
+              f"Namen/Positionen werden diesen Lauf NICHT aktualisiert; Ratings laufen mit der "
+              f"zuletzt gespeicherten Spielerliste aus Supabase weiter.")
+        all_players_df = None
+
+    if all_players_df is not None:
+        existing_rows = client.table("players").select("player_id, fantasy_positions").execute().data or []
+        existing_positions = {row["player_id"]: row["fantasy_positions"] for row in existing_rows}
+        player_records = _build_player_records(all_players_df, existing_positions)
+        supabase_io.upsert_players(client, player_records)
+        print(f"{len(player_records)} Spieler in Supabase aktualisiert.")
+        players_for_ratings = all_players_df
+    else:
+        players_for_ratings = _load_fallback_players_from_supabase(client)
+        print(f"{len(players_for_ratings)} Spieler aus Supabase als Fallback geladen.")
+
+    ratings_df = ratings_engine.compute_ratings(game_logs, players_for_ratings)
     ratings_df["season"] = config.SEASON_LABEL
 
     ratings_records = ratings_df.to_dict("records")

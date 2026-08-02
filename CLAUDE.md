@@ -3,6 +3,11 @@
 Neuaufbau des bestehenden `fantasy_nba`-Projekts (9-Kategorien Fantasy-Basketball-Ratings & Team-/Draft-Tool).
 Ziel: kostenlos/günstig hostbar, tägliche NBA-API-Daten, modernes UI.
 
+## Doku-Übersicht
+
+- `docs/decisions/` – ADRs (Architektur-Entscheidungen, Kontext, verworfene Alternativen)
+- `docs/product-spec.md` – Datenquellen, Rating-Berechnung und Feature-Liste der Website im Detail
+
 ## Architektur (siehe docs/decisions/0001-serverless-architecture.md)
 
 - **`app/`** – Next.js (TypeScript, Tailwind/shadcn) Frontend, gehostet auf Vercel (Free).
